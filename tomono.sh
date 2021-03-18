@@ -24,30 +24,28 @@ fi
 # Monorepo directory
 monorepo_dir="$PWD/$MONOREPO_NAME"
 
-
-
 ##### FUNCTIONS
 
 # Silent pushd/popd
-pushd () {
-    command pushd "$@" > /dev/null
+pushd() {
+	command pushd "$@" >/dev/null
 }
 
-popd () {
-    command popd "$@" > /dev/null
+popd() {
+	command popd "$@" >/dev/null
 }
 
-function read_repositories {
+function read-repositories() {
 	sed -e 's/#.*//' | grep .
 }
 
 # Simply list all files, recursively. No directories.
-function ls-files-recursive {
+function ls-files-recursive() {
 	find . -type f | sed -e 's!..!!'
 }
 
 # List all branches for a given remote
-function remote-branches {
+function remote-branches() {
 	# With GNU find, this could have been:
 	#
 	#   find "$dir/.git/yada/yada" -type f -printf '%P\n'
@@ -68,7 +66,7 @@ function remote-branches {
 #
 # 1. The (git cloneable) location of the repository
 # 2. The name of the target directory in the core repository
-function create-mono {
+function create-mono() {
 	# Pretty risky, check double-check!
 	if [[ "${1:-}" == "--continue" ]]; then
 		if [[ ! -d "$MONOREPO_NAME" ]]; then
@@ -89,7 +87,7 @@ function create-mono {
 	# This directory will contain all final tag refs (namespaced)
 	mkdir -p .git/refs/namespaced-tags
 
-	read_repositories | while read repo name folder; do
+	read-repositories | while read repo name folder master origin; do
 
 		if [[ -z "$name" ]]; then
 			echo "pass REPOSITORY NAME pairs on stdin" >&2
@@ -99,13 +97,17 @@ function create-mono {
 			return 1
 		fi
 
-                if [[ -z "$folder" ]]; then
+		if [[ -z "$folder" ]]; then
 			folder="$name"
-                fi
+		fi
 
-		echo "Merging in $repo.." >&2
+		if [[ -z "$master" ]]; then
+			master="master"
+		fi
+
+		echo "[*] Merging in $repo" >&2
 		git remote add "$name" "$repo"
-		echo "Fetching $name.." >&2 
+		echo "[1] Fetching remote for $name" >&2
 		git fetch -q "$name"
 
 		# Now we've got all tags in .git/refs/tags: put them away for a sec
@@ -113,25 +115,33 @@ function create-mono {
 			mv .git/refs/tags ".git/refs/namespaced-tags/$name"
 		fi
 
-		# Merge every branch from the sub repo into the mono repo, into a
-		# branch of the same name (create one if it doesn't exist).
+		echo "[2] Merging $master branch into master" >&2
+		if git rev-parse -q --verify master; then
+			# Branch already exists, just check it out (and clean up the working dir)
+			git checkout -q master
+			git checkout -q -- .
+			git clean -f -d
+		else
+			# Create a fresh branch with an empty root commit"
+			git checkout -q --orphan master
+			# The ignore unmatch is necessary when this was a fresh repo
+			git rm -rfq --ignore-unmatch .
+			git commit -q --allow-empty -m "wip: root commit for master branch"
+		fi
+		git merge -q --no-commit -s ours "$name/$master" --allow-unrelated-histories
+		git read-tree -q --prefix="$folder/" "$name/$master"
+		git commit -q --no-verify --allow-empty -m "wip: merge $name/$master to master"
+
+		echo "[3] Backuping branchs for $name ..."
+		# Backup every branch from the sub repo into the mono repo, into a branch of the same name.
 		remote-branches "$name" | while read branch; do
-			if git rev-parse -q --verify "$branch"; then
-				# Branch already exists, just check it out (and clean up the working dir)
-				git checkout -q "$branch"
-				git checkout -q -- .
-				git clean -f -d
-			else
-				# Create a fresh branch with an empty root commit"
-				git checkout -q --orphan "$branch"
-				# The ignore unmatch is necessary when this was a fresh repo
-				git rm -rfq --ignore-unmatch .
-				git commit -q --allow-empty -m "Root commit for $branch branch"
-			fi
-			git merge -q --no-commit -s ours "$name/$branch" --allow-unrelated-histories
-			git read-tree --prefix="$folder/" "$name/$branch"
-			git commit -q --no-verify --allow-empty -m "Merging $name to $branch"
+			git checkout -qb "$name/$branch" "$name/$branch"
 		done
+
+		if [[ -z "$origin" ]]; then
+			echo "[4] Removing remote $name"
+			git remote remove "$name"
+		fi
 	done
 
 	# Restore all namespaced tags
