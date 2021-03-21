@@ -1,191 +1,172 @@
-const fs = require("fs");
-const path = require("path");
-const yargs = require("yargs");
 const ora = require("ora");
-const chalk = require("chalk");
 
-const sh = require("shelljs");
-sh.config.silent = true;
+const sh = require("./sh");
 
-const log = {
-  info(...msgs) {
-    console.log(`${msgs.join("\t")}`);
-  },
-  warn(...msgs) {
-    console.log(chalk.yellow(`${msgs.join("\t")}`));
-  },
-  error(...msgs) {
-    console.log(chalk.red(`${msgs.join("\t")}`));
-  },
-  success(...msgs) {
-    console.log(chalk.green(`${msgs.join("\t")}`));
-  },
-};
+const log = require("./log");
 
 const waiting = (fn, msg) => {
-  return async(...args) => {
-    const spinner = ora(msg)
-    let result
+  return async (...args) => {
+    const spinner = ora(msg);
+    let result;
     try {
-      spinner.start()
-      result = await fn(...args)
-      spinner.succeed()
-    }catch (err) {
-      result = err
-      spinner.fail(err)
-      throw err
+      spinner.start();
+      result = await fn(...args);
+      spinner.succeed();
+    } catch (err) {
+      result = err;
+      spinner.fail(err);
+      throw err;
     }
-    return result
-  }
-}
-
-class File {
-  read(path) {
-    return new Promise((resolve, reject) => {
-      fs.readFile(path, "utf-8", (err, data) => {
-        return err ? reject(err) : resolve(data);
-      });
-    });
-  }
-}
-
-class Git {
-  init() {
-    const spinner = ora('Git 初始化')
-    spinner.start()
-    const msg = sh.exec(`git init`, { silent: true }).toString()
-    spinner.succeed(msg)
-  }
-
-  async cleanExistedBranch(branch) {
-    // Branch already exists, just check it out (and clean up the working dir)
-    sh.exec(`git checkout -q ${branch}`)
-    sh.exec(`git checkout -q -- .`)
-    sh.exec(`git clean -f -d`)
-  }
-
-  async createOrphanBranch(branch, commitMsg='') {
-    commitMsg = commitMsg || `wip: root commit for  ${branch} branch`
-
-    // Create a fresh branch with an empty root commit"
-    sh.exec(`git checkout -q --orphan ${branch}`)
-    // The ignore unmatch is necessary when this was a fresh repo
-    sh.exec(`git rm -rfq --ignore-unmatch .`)
-    sh.exec(`git commit -q --allow-empty -m "${commitMsg}"`)
-  }
-}
+    return result;
+  };
+};
 
 class Tomono {
-  constructor({ git = new Git(), file = new File() }) {
+  constructor({
+    path = require("path"),
+    git = require("./git"),
+    file = require("./file")
+  }) {
     this.git = git;
     this.file = file;
-    this.argv = yargs
-      .usage("Usage: $1 -c [config]")
-      .default("c", "repos.json")
-      .alias("c", "config")
-      .version()
-      .alias("v", "version")
-      .help()
-      .alias("h", "help").argv;
+    this.path = path;
+    this.resetArgv({})
 
     this.defaultConfig = {
+      name: "core",
       repositories: {},
       directories: {},
       branches: {},
     };
   }
 
-  getRemoteAlias(name){
-    return `@${name}`
-  }
-
-  async checkout(branch) {
-    const { git } = this
-
-    const spinner = ora()
-    if(sh.exec(`git rev-parse -q --verify ${branch}`).stdout){
-      // log.warn('[Tomono#checkout] before:cleanExistedBranch', branch, sh.exec(`git rev-parse -q --verify ${branch}`).stdout)
-      spinner.start(`Cleaning existed branch ${branch}`)
-      await git.cleanExistedBranch(branch);
-      spinner.succeed(`Success to clean existed branch ${branch}`)
-    }else{
-      // log.warn('[Tomono#checkout] before:createOrphanBranch', branch)
-      spinner.start(`Creating orphan branch ${branch}`)
-      await git.createOrphanBranch(branch);
-      spinner.succeed(`Success to create orphan branch ${branch}`)
+  resetArgv(argv = null) {
+    if (!!argv && "object" === typeof argv) {
+      this.argv = Object.assign({ config: "repos.json" }, argv);
     }
   }
 
-  async import(origin='origin', branch='master', destination='origin', commitMsg='') {
-    commitMsg = commitMsg || `"wip: merge ${origin}/${branch}"`
-    destination = 'string' === typeof destination ? destination.trim('/') : origin
-
-    const spinner = ora();
-    spinner.start(`Importing remote branch ${origin}/${branch}`)
-		sh.exec(`git merge -q --no-commit -s ours --allow-unrelated-histories "${origin}/${branch}"`)
-		sh.exec(`git read-tree -q --prefix=${destination}/ ${origin}/${branch}`)
-		sh.exec(`git commit -q --no-verify --allow-empty -m ${commitMsg}`)
-    spinner.succeed(`Success to import remote branch ${origin}/${branch}`)
+  getRemoteAlias(name) {
+    return `@${name}`;
   }
 
-  async createMonorepo(name="core"){
-    const repoDir = path.join(process.cwd(), name)
-    sh.mkdir('-p', repoDir)
-    sh.cd(repoDir)
-    process.chdir(repoDir)
+  list(list) {
+    switch ({}.toString.call(list)) {
+      case "[object Object]":
+        return Object.entries(list);
+      case "[object Array]":
+        return list;
+      default:
+        log.warn(
+          `\tWarning: '${JSON.stringify(
+            list
+          )}' is not array like, instead to use empty array!`
+        );
+    }
+    return [];
+  }
+
+  async checkout(branch) {
+    const { git } = this;
+
+    if (sh.exec(`git rev-parse --verify ${branch}`).stdout) {
+      await waiting(
+        git.cleanExistedBranch,
+        `Clean existed branch ${branch}`
+      )(branch);
+    } else {
+      await waiting(
+        git.createOrphanBranch,
+        `Create orphan branch ${branch}`
+      )(branch);
+    }
+  }
+
+  async import(
+    origin = "origin",
+    branch = "master",
+    destination = "origin",
+    commitMsg = ""
+  ) {
+    const { git } = this;
+
+    await waiting(git.readTree, `Import remote branch ${origin}/${branch}`)(
+      origin,
+      branch,
+      destination,
+      commitMsg
+    );
+  }
+
+  async getConfig() {
+    const { path, argv, defaultConfig, file } = this;
+    try {
+      const configFilePath = path.join(process.cwd(), argv.config);
+      const fileData = await file.read(configFilePath);
+      return Object.assign({}, defaultConfig, JSON.parse(fileData));
+    } catch (error) {
+      return defaultConfig;
+    }
   }
 
   async init() {
+    const { path, defaultConfig, file } = this;
+    const filename = "repos.json";
+    const filepath = path.resolve(process.cwd(), filename);
+    const spinner = ora(`Initialize tomono config file at ${filepath}`);
     try {
-      const { argv, defaultConfig, file, git } = this;
-
-      const fileData = await file.read(path.join(process.cwd(), argv.config));
-      // log.success("[Tomono#import] fileData", fileData);
-      const config = Object.assign({}, defaultConfig, JSON.parse(fileData));
-      // log.success("[Tomono#import] config", JSON.stringify(config));
-
-      this.createMonorepo()
-
-      git.init()
-
-      let { repositories, directories, branches } = config
-      const getRemoteAlias = (name) => `@${name}`
-      const list = l => {
-        switch (({}).toString.call(l)) {
-          case '[object Object]':
-            return Object.entries(l)
-          case '[object Array]':
-            return l;
-          default:
-            log.warn(`\tWarning: '${JSON.stringify(l)}' is not array like, instead to use empty array!`)
-        }
-        return []
-      }
-      for(const [name, repo] of list(repositories)){
-        const remote = getRemoteAlias(name)
-        const spinner = ora()
-        spinner.start(`Fetching remote for ${name} with alias '${remote}'`)
-        sh.exec(`git remote add ${remote} ${repo}`)
-        sh.exec(`git fetch -q ${remote}`)
-        spinner.succeed(`Success to fetch remote for ${name} with alias '${remote}'`)
-      }
-
-      for(const [currentBranch, originBranches] of list(branches)){
-        for(const [origin, branch] of list(originBranches)){
-          // log.info("[Tomono#import] foreach branch", repositories[origin], directories[origin])
-          if(!repositories[origin] || !directories[origin]) continue;
-          // log.info("[Tomono#import] before:checkout", origin, branch)
-          await this.checkout(currentBranch)
-          // log.info("[Tomono#import] before:checkout", origin, branch, directories[origin])
-          await this.import(getRemoteAlias(origin), branch, directories[origin])
-        }
-      }
-      
-      const [mainBranch='master'] = Object.keys(branches) || []
-      sh.exec(`git checkout -q ${mainBranch}`)
-      sh.exec(`git checkout -q .`)
+      spinner.start();
+      const json = JSON.stringify(defaultConfig, null, 2);
+      await file.write(filepath, json);
+      spinner.succeed();
     } catch (error) {
-      log.error("[Tomono#import] error", error);
+      spinner.fail();
+      log.error("[#Tomono#init] error", error);
+    }
+  }
+
+  async create(argv = null) {
+    this.resetArgv(argv);
+    try {
+      const { path, git, getRemoteAlias, list } = this;
+
+      const {
+        name,
+        repositories,
+        directories,
+        branches,
+      } = await this.getConfig();
+      const monorepoDirectory = path.resolve(process.cwd(), name);
+
+      await waiting(
+        git.init,
+        `Initialize Git repository into ${monorepoDirectory}`
+      )(monorepoDirectory);
+
+      for (const [name, repo] of list(repositories)) {
+        const remote = getRemoteAlias(name);
+        await waiting(
+          git.fetchRemote,
+          `Fetch remote for ${name} with alias ${remote}`
+        )(remote, repo);
+      }
+
+      for (const [currentBranch, originBranches] of list(branches)) {
+        for (const [origin, branch] of list(originBranches)) {
+          if (!repositories[origin] || !directories[origin]) continue;
+          await this.checkout(currentBranch);
+          await this.import(
+            getRemoteAlias(origin),
+            branch,
+            directories[origin]
+          );
+        }
+      }
+
+      const [mainBranch = "master"] = Object.keys(branches) || [];
+      await this.checkout(mainBranch);
+    } catch (error) {
+      log.error("[Tomono#init] error", error);
     }
   }
 }

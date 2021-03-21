@@ -12,9 +12,6 @@
   ],
   "devDependencies": {
     "chalk": "^4.1.0",
-    "commander": "^7.1.0",
-    "eslint": "^7.22.0",
-    "inquire": "^0.4.8",
     "ora": "^5.4.0",
     "shelljs": "^0.8.4",
     "yargs": "^16.2.0"
