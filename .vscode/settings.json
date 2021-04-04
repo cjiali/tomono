@@ -1,10 +1,178 @@
 {
-    "cSpell.words": [
-        "mycompany",
-        "namespacing",
-        "repos",
-        "tomono",
-        "unmatch",
-        "vendoring"
-    ]
+  "files.associations": {
+    ".code-workspace": "jsonc",
+    ".babelrc": "json",
+    ".eslintrc": "jsonc",
+    ".eslintrc*.json": "jsonc",
+    ".stylelintrc": "jsonc",
+    "stylelintrc": "jsonc",
+    ".htmlhintrc": "jsonc",
+    "htmlhintrc": "jsonc",
+    "Procfile*": "shellscript",
+    "README": "markdown",
+    "*.ttml": "xml",
+    "*.ttss": "css",
+    "*.cjson": "jsonc",
+    "*.wxss": "css",
+    "*.wxs": "javascript"
+  },
+  "search.useIgnoreFiles": true,
+  "search.exclude": {
+    "**/build": true,
+    "**/output": true,
+    "**/dist": true,
+    "**/yarn.lock": true,
+    "**/package-lock.json": true,
+    "**/*.log": true,
+    "**/*.pid": true,
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/bower_components": true
+  },
+  //
+  "editor.rulers": [80, 120],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.fixAll.eslint": true
+  },
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.autoSave": "onFocusChange",
+  //
+  "eslint.alwaysShowStatus": true,
+  "eslint.nodePath": "./node_modules",
+  "eslint.run": "onType",
+  "eslint.options": {
+    "rules": {
+      "no-debugger": "off"
+    }
+  },
+  "eslint.probe": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue"],
+  "eslint.validate": ["javascript", "typescript", "javascriptreact", "typescriptreact", "vue"],
+  "eslint.format.enable": true,
+  "eslint.autoFixOnSave": true,
+  "eslint.lintTask.enable": true,
+  //
+  "prettier.printWidth": 120, // 一行最多 120 字符
+  "prettier.tabWidth": 2, // 使用 2 个空格缩进
+  "prettier.useTabs": false, // 不使用缩进符，而使用空格
+  "prettier.semi": true, // 行尾需要有分号
+  "prettier.singleQuote": true, // 使用单引号
+  "prettier.quoteProps": "always", // 对象的 key 仅在必要时用引号
+  "prettier.jsxSingleQuote": false, // jsx 不使用单引号，而使用双引号
+  "prettier.trailingComma": "all", // 末尾需要有逗号
+  "prettier.bracketSpacing": true, // 大括号内的首尾需要空格
+  "prettier.jsxBracketSameLine": false, // jsx 标签的反尖括号需要换行
+  "prettier.arrowParens": "always", // 箭头函数，只有一个参数的时候，也需要括号
+  "prettier.requirePragma": false, // 不需要写文件开头的 @prettier
+  "prettier.insertPragma": false, // 不需要自动在文件开头插入 @prettier
+  "prettier.proseWrap": "preserve", // 使用默认的折行标准
+  "prettier.htmlWhitespaceSensitivity": "css", // 根据显示样式决定 html 要不要折行
+  "prettier.vueIndentScriptAndStyle": false, // vue 文件中的 script 和 style 内不用缩进
+  "prettier.endOfLine": "lf", // 换行符使用 lf
+  "prettier.embeddedLanguageFormatting": "auto", // 格式化嵌入的内容
+  //
+  "emmet.triggerExpansionOnTab": true,
+  "emmet.includeLanguages": {
+    "wxml": "html"
+  },
+  //
+  "htmlhint.enable": true,
+  "stylelint.enable": true,
+  "css.validate": false,
+  "scss.validate": false,
+  "less.validate": false,
+  //
+  "todo-tree.general.tags": ["TODO", "HACK", "FIXME", "BUG", "NOTE", "XXX"],
+  "todo-tree.highlights.defaultHighlight": {
+    "gutterIcon": true
+  },
+  "todo-tree.highlights.customHighlight": {
+    "TODO": {
+      "foreground": "#fff",
+      "background": "#ffbd2a",
+      "iconColour": "#ffbd2a"
+    },
+    "HACK": {
+      "icon": "beaker",
+      "iconColour": "#abb2bf"
+    },
+    "FIXME": {
+      "foreground": "#fff",
+      "background": "#f06292",
+      "icon": "flame",
+      "iconColour": "#f06292"
+    },
+    "BUG": {
+      "icon": "bug",
+      "foreground": "white",
+      "background": "#FF2D00",
+      "iconColour": "#FF2D00"
+    },
+    "NOTE": {
+      "icon": "note",
+      "foreground": "#98c379",
+      "background": "transparent",
+      "iconColour": "#98c379"
+    },
+    "XXX": {
+      "icon": "question",
+      "foreground": "#3498DB",
+      "background": "transparent",
+      "iconColour": "#3498DB"
+    }
+  },
+  //
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.formatOnType": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.formatOnType": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true
+  },
+  //
+  "cSpell.diagnosticLevel": "Hint",
+  "cSpell.words": [
+    "Procfile",
+    "cjson",
+    "dbaeumer",
+    "esbenp",
+    "htmlhintrc",
+    "octref",
+    "stylelintrc",
+    "ttml",
+    "ttss",
+    "vetur",
+    "wxss"
+  ]
 }

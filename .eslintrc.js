@@ -4,7 +4,8 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  extends: "eslint:recommended",
+  extends: ["alloy", 'prettier'],
+  plugins: ['prettier'],
   parserOptions: {
     ecmaVersion: 12,
   },
