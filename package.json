@@ -1,6 +1,7 @@
 {
   "name": "tomono",
-  "version": "1.0.0",
+  "version": "1.1.1",
+  "description": "Multirepo to monorepo.",
   "main": "index.js",
   "license": "MIT",
   "bin": {
@@ -10,6 +11,18 @@
     "./bin",
     "./src"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cjiali/tomono.git"
+  },
+  "keywords": [
+    "tomono",
+    "monorepo",
+    "multirepo",
+    "javascript",
+    "typescript"
+  ],
+  "author": "chjiali <chjiali@outlook.com>",
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "eslint": "^7.23.0",
