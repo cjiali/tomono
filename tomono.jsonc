@@ -1,0 +1,23 @@
+{
+  "name": "monorepo",
+  "path": "./mono",
+  "repositories": {
+    // (multi) repo remote urls, examples:
+    // "pc": "git@example.com:xxx/pc.git",
+    // "mobile": "git@example.com:xxx/mobile.git"
+  },
+  "directories": {
+    // (multi) repo => directory, examples:
+    // "pc": "apps/pc",
+    // "mobile": "apps/mobile"
+  },
+  "branches": {
+    // target branch which in monorepo
+    "master": {
+      // specify the branches that should be merged into target branch in specify (multi) repo,
+      // the key is (multi) repo and the value is the specified (multi) repo's branch, examples:
+      // "pc": "master",
+      // "mobile": "master"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "strict": true,
+    "declaration": true,
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "outDir": "lib",
+    "rootDir": "src",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

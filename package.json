@@ -1,0 +1,62 @@
+{
+  "name": "tomono",
+  "description": "A cli for migrating multi-repo to monorepo.",
+  "version": "2.0.0-beta.6",
+  "author": "chjiali",
+  "bin": {
+    "tomono": "./bin/run"
+  },
+  "bugs": "https://github.com/cjiali/tomono/issues",
+  "dependencies": {
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/plugin-help": "^3",
+    "enquirer": "^2.3.6",
+    "jsonc": "^2.0.0",
+    "listr2": "^3.12.2",
+    "tslib": "^1",
+    "zx": "^4.2.0"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "^1",
+    "@types/node": "^16.11.0",
+    "eslint": "^5.13",
+    "eslint-config-oclif": "^4.0.0",
+    "eslint-config-oclif-typescript": "^1.0.2",
+    "globby": "^10",
+    "ts-node": "^10.3.0",
+    "typescript": "^4.4.4"
+  },
+  "engines": {
+    "node": ">=14.13.1"
+  },
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json",
+    "/tomono.jsonc"
+  ],
+  "homepage": "https://github.com/cjiali/tomono",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "tomono",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "repository": "cjiali/tomono",
+  "scripts": {
+    "postpack": "rm -f oclif.manifest.json",
+    "posttest": "eslint . --ext .ts --config .eslintrc",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "test": "echo NO TESTS",
+    "version": "oclif-dev readme && git add README.md"
+  },
+  "types": "lib/index.d.ts"
+}
